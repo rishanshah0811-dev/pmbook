@@ -1,5 +1,5 @@
 # Thin wrapper so the common commands are short. The real build is CMake.
-.PHONY: all debug release tsan test check format clean
+.PHONY: all debug release tsan test check format format-check clean replay-sample
 
 all: release
 
@@ -27,6 +27,10 @@ format:
 
 format-check:
 	clang-format --dry-run --Werror $$(git ls-files '*.cpp' '*.hpp')
+
+# Replay the shipped 12-minute recording and check it reproduces the live run.
+replay-sample: release
+	./build/release/pmbook replay --expect data/sample/live_summary.json data/sample/pm_*.jsonl.gz
 
 clean:
 	rm -rf build

@@ -20,9 +20,11 @@ One line per term, alphabetical.
 - **Data race**: two threads access the same memory without ordering, and at least one writes. Undefined behaviour in C++.
 - **Delta**: a message describing only what changed in the book.
 - **Dependency**: someone else's library our code uses (e.g. simdjson).
+- **Determinism**: same input always produces the same output, run after run.
 - **Differential testing**: checking a fast implementation against a simple reference on the same random inputs.
 - **Exponential backoff**: waiting longer after each failed retry (0.5 s, 1 s, 2 s, …) up to a cap.
 - **FetchContent**: CMake feature that downloads a dependency's source at configure time and builds it with our project.
+- **Fingerprint (state hash)**: a short number computed from a whole data structure; equal structures give equal fingerprints.
 - **Fixed point**: storing a decimal as a whole number of a small unit (price 0.08 → 800 units of 0.0001).
 - **Floating point (`double`)**: binary scientific notation. Fast, but most decimals (like 0.1) are not exact.
 - **gzip sync flush**: forcing compressed data out to the file so it's readable even if the program dies.
@@ -38,7 +40,9 @@ One line per term, alphabetical.
 - **Parsing**: turning text (JSON) into structured data the program can use.
 - **Preset**: a named, saved set of CMake build settings (e.g. `debug`, `release`).
 - **Price level**: one price plus the total size resting at it.
+- **Pure function**: output depends only on its inputs, with no hidden clock, randomness or outside state.
 - **RAII**: "resource acquisition is initialisation": an object owns a resource and frees it automatically in its destructor.
+- **Replay**: feeding recorded input back through the system to reproduce a past session.
 - **Resync**: throwing away a book you no longer trust and rebuilding it from a fresh snapshot.
 - **Sanitizer**: compiler option that adds runtime checks to catch a class of bugs (memory, undefined behaviour, data races).
 - **SIMD**: "single instruction, multiple data": one CPU instruction processes many bytes at once.

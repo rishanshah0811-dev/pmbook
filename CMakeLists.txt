@@ -28,6 +28,8 @@ add_library(pmcore
   src/book/flat_book.cpp
   src/feed/feed_client.cpp
   src/record/recorder.cpp
+  src/record/record_reader.cpp
+  src/app/summary_compare.cpp
 )
 target_include_directories(pmcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pmcore PUBLIC simdjson::simdjson ixwebsocket ZLIB::ZLIB PRIVATE pm_warnings)

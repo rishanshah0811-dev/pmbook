@@ -23,3 +23,10 @@ Run live and record (stats go to stderr):
     --record-dir data/recordings --duration 600 --chaos-disconnect 180
 python3 tools/inspect_recording.py data/recordings/pm_*.jsonl.gz
 ```
+
+Replay a recording through the exact same parse → book path (offline):
+
+```bash
+make replay-sample   # 12-min sample; must reproduce the live run's final books
+./build/release/pmbook replay --speed 1 data/sample/pm_*.jsonl.gz   # real time
+```
