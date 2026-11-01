@@ -38,5 +38,6 @@ This folder is your course notes for the engine. Read the lessons in order. Each
 | 01 | [What is a market data feed and an order book?](01-market-data-feed-and-order-book.md) | before M1 |
 | 02 | [How a C++ project is built: CMake, dependencies, sanitizers](02-building-cpp-cmake-sanitizers.md) | M1 |
 | 03 | [Parsing messages and why prices are integers](03-parsing-and-fixed-point.md) | M2 |
+| 04 | [The order book: flat array vs std::map](04-order-book-flat-array-vs-map.md) | M3 |
 
 More lessons get added as each milestone lands. Terms are defined in [GLOSSARY.md](GLOSSARY.md).

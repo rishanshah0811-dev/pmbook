@@ -33,6 +33,9 @@ enum class MsgType : std::uint8_t {
 struct Level {
   Price price = 0;
   Size size = 0;  // 0 in a delta means "remove this level"
+
+  // C++20: ask the compiler to write == for us (compares every member).
+  friend bool operator==(const Level&, const Level&) = default;
 };
 
 struct PriceChange {
@@ -43,6 +46,7 @@ struct PriceChange {
   Side side = Side::Buy;  // BUY updates the bid side, SELL the ask side
   Price best_bid = 0;     // exchange's view after the change; 0 = none / absent
   Price best_ask = 0;
+  bool has_bbo = false;  // true if both best_bid and best_ask fields were present
 };
 
 // A [begin, begin + count) slice of one of ParsedFrame's vectors.

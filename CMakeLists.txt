@@ -25,6 +25,7 @@ add_library(pmcore
   src/core/version.cpp
   src/parse/fixed_point.cpp
   src/parse/parser.cpp
+  src/book/flat_book.cpp
 )
 target_include_directories(pmcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pmcore PUBLIC simdjson::simdjson PRIVATE pm_warnings)

@@ -228,6 +228,8 @@ bool Parser::parse_changes(od::value v, ParsedFrame& out, Range& range) {
     bool have_price = false;
     bool have_size = false;
     bool have_side = false;
+    bool have_bid = false;
+    bool have_ask = false;
     for (auto field_result : obj) {
       od::field field;
       std::string_view key;
@@ -246,15 +248,16 @@ bool Parser::parse_changes(od::value v, ParsedFrame& out, Range& range) {
       } else if (key == "hash") {
         ok = get_str(fv, pc.hash);
       } else if (key == "best_bid") {
-        ok = get_optional_price(fv, pc.best_bid);
+        ok = have_bid = get_optional_price(fv, pc.best_bid);
       } else if (key == "best_ask") {
-        ok = get_optional_price(fv, pc.best_ask);
+        ok = have_ask = get_optional_price(fv, pc.best_ask);
       }
       if (!ok) return fail("bad price change field");
     }
     if (pc.asset_id.empty() || !have_price || !have_size || !have_side) {
       return fail("price change missing asset_id/price/size/side");
     }
+    pc.has_bbo = have_bid && have_ask;
     out.changes.push_back(pc);
   }
   range.count = static_cast<std::uint32_t>(out.changes.size()) - range.begin;
