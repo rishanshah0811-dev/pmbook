@@ -34,17 +34,24 @@ namespace pm {
 
 enum class WaitMode : std::uint8_t { Spin, Hybrid };
 
+// Most slots carry a raw frame. Connection status changes travel through the
+// same queue so they stay in order with the data around them.
+enum class SlotKind : std::uint8_t { Frame, Connected, Reconnecting };
+
 struct FrameSlot {
+  SlotKind kind = SlotKind::Frame;
   std::int64_t recv_ns = 0;
-  std::string data;
+  std::string data;  // raw frame, or status detail text
 };
 
 class FramePipeline {
  public:
   using Handler = std::function<void(std::string_view raw, std::int64_t recv_ns)>;
+  using StatusHandler = std::function<void(SlotKind kind, std::string_view detail)>;
 
-  FramePipeline(std::size_t capacity, WaitMode mode, Handler handler)
-      : q_(capacity), mode_(mode), handler_(std::move(handler)) {}
+  FramePipeline(std::size_t capacity, WaitMode mode, Handler handler,
+                StatusHandler on_status = nullptr)
+      : q_(capacity), mode_(mode), handler_(std::move(handler)), on_status_(std::move(on_status)) {}
   ~FramePipeline() { stop(); }
   FramePipeline(const FramePipeline&) = delete;
   FramePipeline& operator=(const FramePipeline&) = delete;
@@ -54,18 +61,14 @@ class FramePipeline {
     consumer_ = std::thread([this] { run(); });
   }
 
-  // Producer side. Call from ONE thread at a time (see FeedClient: frames of
-  // consecutive connections never overlap).
+  // Producer side. Call from ONE thread at a time. FeedClient calls us from
+  // different threads over time (each connection's thread, and the
+  // supervisor between connections), but never two at once, and each hand-
+  // over is ordered by a thread join/start, which is all SPSC requires.
   void push(std::string_view raw, std::int64_t recv_ns) {
-    FrameSlot* slot;
-    while ((slot = q_.producer_slot()) == nullptr) {
-      full_waits_.fetch_add(1, std::memory_order_relaxed);
-      std::this_thread::yield();
-    }
-    slot->recv_ns = recv_ns;
-    slot->data.assign(raw.data(), raw.size());  // reuses the slot's buffer
-    q_.commit_push();
+    push_slot(SlotKind::Frame, raw, recv_ns);
   }
+  void push_status(SlotKind kind, std::string_view detail) { push_slot(kind, detail, 0); }
 
   // Processes everything already pushed, then stops the consumer thread.
   void stop() {
@@ -78,13 +81,29 @@ class FramePipeline {
   std::uint64_t processed() const noexcept { return processed_.load(std::memory_order_relaxed); }
 
  private:
+  void push_slot(SlotKind kind, std::string_view data, std::int64_t recv_ns) {
+    FrameSlot* slot;
+    while ((slot = q_.producer_slot()) == nullptr) {
+      full_waits_.fetch_add(1, std::memory_order_relaxed);
+      std::this_thread::yield();
+    }
+    slot->kind = kind;
+    slot->recv_ns = recv_ns;
+    slot->data.assign(data.data(), data.size());  // reuses the slot's buffer
+    q_.commit_push();
+  }
+
   void run() {
     using namespace std::chrono;
     auto idle_since = steady_clock::now();
     bool idle = false;
     while (true) {
       if (FrameSlot* f = q_.front()) {
-        handler_(f->data, f->recv_ns);
+        if (f->kind == SlotKind::Frame) {
+          handler_(f->data, f->recv_ns);
+        } else if (on_status_) {
+          on_status_(f->kind, f->data);
+        }
         q_.pop();
         processed_.fetch_add(1, std::memory_order_relaxed);
         idle = false;
@@ -114,6 +133,7 @@ class FramePipeline {
   SpscQueue<FrameSlot> q_;
   WaitMode mode_;
   Handler handler_;
+  StatusHandler on_status_;
   std::thread consumer_;
   std::atomic<bool> running_{false};
   std::atomic<std::uint64_t> full_waits_{0};

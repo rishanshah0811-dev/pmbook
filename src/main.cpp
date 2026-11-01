@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -29,6 +30,9 @@
 #include "core/version.hpp"
 #include "feed/feed_client.hpp"
 #include "parse/parser.hpp"
+#include "publish/publisher.hpp"
+#include "publish/sink.hpp"
+#include "publish/tcp_sink.hpp"
 #include "queue/frame_pipeline.hpp"
 #include "record/recorder.hpp"
 #include "replay/replayer.hpp"
@@ -39,6 +43,50 @@ namespace {
 std::atomic<bool> g_stop{false};
 extern "C" void on_signal(int) { g_stop.store(true); }
 
+// Output options shared by live and replay (see CONTRACT.md).
+struct PublishArgs {
+  std::string mode;  // "stdout" | "tcp" | "none"
+  std::uint16_t port = 9100;
+  std::size_t depth = 10;
+
+  // Handles --publish / --publish-port / --depth. Returns false if `k` isn't
+  // one of ours; sets `bad` if the value is invalid.
+  bool parse(std::string_view k, const char* v, bool& bad) {
+    if (k == "--publish") {
+      mode = v;
+      bad = !(mode == "stdout" || mode == "tcp" || mode == "none");
+    } else if (k == "--publish-port") {
+      const int p = std::atoi(v);
+      bad = p <= 0 || p > 65535;
+      port = static_cast<std::uint16_t>(p);
+    } else if (k == "--depth") {
+      const int d = std::atoi(v);
+      bad = d <= 0 || d > 1000;
+      depth = static_cast<std::size_t>(d);
+    } else {
+      return false;
+    }
+    return true;
+  }
+};
+
+// Builds the sink for the chosen mode; nullptr for "none" or on error.
+std::unique_ptr<pm::Sink> make_sink(const PublishArgs& p, bool& error) {
+  error = false;
+  if (p.mode == "stdout") return std::make_unique<pm::StdoutSink>();
+  if (p.mode == "tcp") {
+    auto tcp = std::make_unique<pm::TcpSink>(p.port);
+    if (!tcp->start()) {
+      std::fprintf(stderr, "error: cannot listen on %s\n", tcp->error().c_str());
+      error = true;
+      return nullptr;
+    }
+    std::fprintf(stderr, "[publish] PMBook v1 on tcp://127.0.0.1:%u\n", tcp->port());
+    return tcp;
+  }
+  return nullptr;
+}
+
 struct LiveArgs {
   std::vector<std::string> assets;
   std::string record_dir = "data/recordings";
@@ -48,6 +96,7 @@ struct LiveArgs {
   int stats_s = 10;
   std::string summary_path;
   pm::WaitMode wait = pm::WaitMode::Hybrid;
+  PublishArgs publish{.mode = "stdout"};
 };
 
 int usage() {
@@ -56,8 +105,11 @@ int usage() {
       "usage: pmbook live --asset ID [--asset ID ...] [--record-dir DIR | --no-record]\n"
       "                   [--duration SEC] [--chaos-disconnect SEC] [--stats SEC]\n"
       "                   [--summary FILE] [--wait spin|hybrid]\n"
-      "       pmbook replay [--speed X] [--stats SEC] [--summary FILE] [--expect FILE] FILE...\n"
+      "                   [--publish stdout|tcp|none] [--publish-port N] [--depth N]\n"
+      "       pmbook replay [--speed X] [--stats SEC] [--summary FILE] [--expect FILE]\n"
+      "                     [--publish stdout|tcp|none] [--publish-port N] [--depth N] FILE...\n"
       "                     (--speed 0 = as fast as possible, 1 = real time)\n"
+      "  live publishes to stdout by default; replay publishes nothing by default.\n"
       "tip: python3 tools/list_markets.py --limit 3 --ids-only\n");
   return 2;
 }
@@ -73,7 +125,10 @@ std::optional<LiveArgs> parse_live(int argc, char** argv) {
       continue;
     }
     if (!(v = val())) return std::nullopt;
-    if (k == "--asset") {
+    bool bad = false;
+    if (a.publish.parse(k, v, bad)) {
+      if (bad) return std::nullopt;
+    } else if (k == "--asset") {
       a.assets.emplace_back(v);
     } else if (k == "--record-dir") {
       a.record_dir = v;
@@ -116,13 +171,27 @@ int run_live(const LiveArgs& args) {
   std::optional<Recorder> recorder;
   if (args.record) recorder.emplace(args.record_dir);
   FrameProcessor<FlatBook> proc({.stats_interval_s = args.stats_s, .log_resyncs = true});
+  bool sink_error = false;
+  std::unique_ptr<Sink> sink = make_sink(args.publish, sink_error);
+  if (sink_error) return 1;
+  std::optional<Publisher> publisher;
+  if (sink) publisher.emplace(*sink, args.publish.depth);
 
-  FramePipeline pipeline(4096, args.wait, [&](std::string_view raw, std::int64_t recv_ns) {
-    proc.on_frame(raw, recv_ns);  // the same path replay uses
-    if (recorder && !recorder->write(recv_ns, raw)) {
-      std::fprintf(stderr, "error: recorder write failed (%s)\n", recorder->current_path().c_str());
-    }
-  });
+  FramePipeline pipeline(
+      4096, args.wait,
+      [&](std::string_view raw, std::int64_t recv_ns) {
+        proc.on_frame(raw, recv_ns);  // the same path replay uses
+        if (publisher) publisher->on_events(proc.events(), recv_ns);
+        if (recorder && !recorder->write(recv_ns, raw)) {
+          std::fprintf(stderr, "error: recorder write failed (%s)\n",
+                       recorder->current_path().c_str());
+        }
+      },
+      [&](SlotKind kind, std::string_view detail) {
+        if (publisher)
+          publisher->publish_status(kind == SlotKind::Connected ? "connected" : "reconnecting",
+                                    detail);
+      });
   pipeline.start();
 
   // Runs on the network thread. FeedClient guarantees frames from one
@@ -131,7 +200,10 @@ int run_live(const LiveArgs& args) {
   auto on_frame = [&](std::string_view raw, std::int64_t recv_ns) { pipeline.push(raw, recv_ns); };
 
   auto on_status = [&](FeedStatus st, std::string_view detail) {
-    // Only logs. Book state is driven purely by frames (see processor.hpp).
+    // Logs, and forwards to the publisher via the queue (in order with frames).
+    // Book state is driven purely by frames (see processor.hpp).
+    pipeline.push_status(st == FeedStatus::Connected ? SlotKind::Connected : SlotKind::Reconnecting,
+                         detail);
     if (st == FeedStatus::Connected) {
       std::fprintf(stderr, "[feed] connected: %.*s\n", static_cast<int>(detail.size()),
                    detail.data());
@@ -147,6 +219,7 @@ int run_live(const LiveArgs& args) {
 
   std::signal(SIGINT, on_signal);
   std::signal(SIGTERM, on_signal);
+  std::signal(SIGPIPE, SIG_IGN);  // a consumer closing our stdout must not kill the engine
   std::fprintf(stderr, "pmbook %.*s: %zu assets, recording %s\n",
                static_cast<int>(version().size()), version().data(), args.assets.size(),
                args.record ? args.record_dir.c_str() : "off");
@@ -190,6 +263,7 @@ struct ReplayArgs {
   int stats_s = 0;
   std::string summary_path;
   std::string expect_path;
+  PublishArgs publish{.mode = "none"};
 };
 
 std::optional<ReplayArgs> parse_replay(int argc, char** argv) {
@@ -200,7 +274,10 @@ std::optional<ReplayArgs> parse_replay(int argc, char** argv) {
     if (k.starts_with("--")) {
       const char* v = val();
       if (!v) return std::nullopt;
-      if (k == "--speed") {
+      bool bad = false;
+      if (a.publish.parse(k, v, bad)) {
+        if (bad) return std::nullopt;
+      } else if (k == "--speed") {
         a.speed = std::atof(v);
       } else if (k == "--stats") {
         a.stats_s = std::atoi(v);
@@ -222,12 +299,22 @@ std::optional<ReplayArgs> parse_replay(int argc, char** argv) {
 int run_replay(const ReplayArgs& args) {
   using namespace pm;
   FrameProcessor<FlatBook> proc({.stats_interval_s = args.stats_s, .log_resyncs = true});
+  bool sink_error = false;
+  std::unique_ptr<Sink> sink = make_sink(args.publish, sink_error);
+  if (sink_error) return 1;
+  std::optional<Publisher> publisher;
+  if (sink) publisher.emplace(*sink, args.publish.depth);
   std::signal(SIGINT, on_signal);
+  std::signal(SIGPIPE, SIG_IGN);
   ReplayOptions opt;
   opt.speed = args.speed;
   opt.stop = &g_stop;
-  const ReplayResult r = replay_files(
-      args.files, opt, [&](std::string_view raw, std::int64_t ts) { proc.on_frame(raw, ts); });
+  // In replay, ts_recv_ns in published messages is the RECORDED receive time
+  // (it identifies the frame); ts_pub_ns is the current clock.
+  const ReplayResult r = replay_files(args.files, opt, [&](std::string_view raw, std::int64_t ts) {
+    proc.on_frame(raw, ts);
+    if (publisher) publisher->on_events(proc.events(), ts);
+  });
 
   std::fprintf(stderr, "[replay] files=%llu records=%llu feed=%.1fs wall=%.3fs (%.0f frames/s)%s\n",
                static_cast<unsigned long long>(r.files), static_cast<unsigned long long>(r.records),

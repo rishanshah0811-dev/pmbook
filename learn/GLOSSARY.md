@@ -7,6 +7,7 @@ One line per term, alphabetical.
 - **Ask / offer**: a resting order to sell at a given price.
 - **asset_id / token ID**: Polymarket's ID for one outcome's order book (a 77-digit number, stored as a string).
 - **Atomic (std::atomic)**: a variable whose reads/writes are indivisible and safely visible across threads.
+- **Backpressure**: what happens when a receiver is slower than a sender; buffer, slow down, or drop.
 - **Best bid / best ask**: highest buy price / lowest sell price currently in the book.
 - **Bid**: a resting order to buy at a given price.
 - **Bitmap (occupancy)**: one bit per slot saying whether it's in use; lets you skip 64 empty slots at once.
@@ -15,8 +16,10 @@ One line per term, alphabetical.
 - **Cache line**: the 64-byte block the CPU moves between memory and cache in one go.
 - **Cache miss**: the data wasn't in cache, so the CPU waits for main memory (~100× slower).
 - **Chaos testing**: deliberately breaking things (e.g. dropping the connection) to prove recovery works.
+- **CLOCK_MONOTONIC_RAW**: the macOS/Linux clock behind C++ steady_clock on macOS (libc++); never adjusted.
 - **CMake**: a tool that reads a description of your project and generates the real build instructions for your machine.
 - **Compiler**: program that turns C++ source code into machine code the CPU runs.
+- **Contract (interface)**: a written agreement on message format and meaning between two programs.
 - **countl_zero / countr_zero**: C++20 `<bit>` functions counting leading/trailing zero bits; one CPU instruction.
 - **Crossed book**: best bid ≥ best ask. On a real exchange this can't last, so locally it means a bug or missed update.
 - **Data race**: two threads access the same memory without ordering, and at least one writes. Undefined behaviour in C++.
@@ -41,6 +44,8 @@ One line per term, alphabetical.
 - **Micro-unit**: 0.000001 of a share; our unit for sizes.
 - **Microprice**: mid price weighted by opposite-side sizes; leans toward the side likely to move.
 - **Mutex**: a lock; only one thread at a time may hold it.
+- **NDJSON**: newline-delimited JSON; same idea as JSON Lines.
+- **Non-blocking socket**: send/recv return immediately instead of waiting; leftovers are handled later.
 - **OpenSSL**: library that implements TLS encryption.
 - **Order book**: all resting buy and sell orders for one instrument, grouped by price.
 - **Parsing**: turning text (JSON) into structured data the program can use.
@@ -53,6 +58,7 @@ One line per term, alphabetical.
 - **Resync**: throwing away a book you no longer trust and rebuilding it from a fresh snapshot.
 - **Ring buffer**: fixed-size array used as a circular queue; indices wrap around.
 - **Sanitizer**: compiler option that adds runtime checks to catch a class of bugs (memory, undefined behaviour, data races).
+- **Sequence number (seq)**: a counter on each message so a receiver can detect missing ones.
 - **SIMD**: "single instruction, multiple data": one CPU instruction processes many bytes at once.
 - **simdjson On-Demand**: simdjson mode that reads fields lazily in one pass instead of building a full tree.
 - **Snapshot**: a message containing the full book at one moment.
@@ -63,6 +69,7 @@ One line per term, alphabetical.
 - **std::span**: non-owning view of a contiguous run of elements (pointer + length).
 - **std::string_view**: non-owning view of characters (pointer + length); must not outlive the memory it points to.
 - **steady_clock**: C++ clock that never jumps backwards or forwards; use it to measure durations.
+- **TCP_NODELAY**: socket option that sends small messages immediately instead of batching them (Nagle's algorithm).
 - **Template**: C++ code written once for "any type T"; the compiler generates a version per type used.
 - **Thread**: an independent flow of execution inside a program; threads share memory.
 - **ThreadSanitizer (TSan)**: compiler add-on that detects data races at runtime.

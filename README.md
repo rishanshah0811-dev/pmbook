@@ -24,6 +24,14 @@ Run live and record (stats go to stderr):
 python3 tools/inspect_recording.py data/recordings/pm_*.jsonl.gz
 ```
 
+Stream order books to a strategy (PMBook protocol v1, see `CONTRACT.md`):
+
+```bash
+./build/release/pmbook live --asset <id> --asset <id> | python3 examples/consume.py
+./build/release/pmbook live --asset <id> --publish tcp &   # 127.0.0.1:9100
+python3 examples/consume.py --tcp 127.0.0.1:9100
+```
+
 Replay a recording through the exact same parse → book path (offline):
 
 ```bash

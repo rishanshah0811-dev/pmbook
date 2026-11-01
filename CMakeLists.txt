@@ -30,6 +30,7 @@ add_library(pmcore
   src/record/recorder.cpp
   src/record/record_reader.cpp
   src/app/summary_compare.cpp
+  src/publish/tcp_sink.cpp
 )
 target_include_directories(pmcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(pmcore PUBLIC simdjson::simdjson ixwebsocket ZLIB::ZLIB PRIVATE pm_warnings)

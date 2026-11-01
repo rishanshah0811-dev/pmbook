@@ -42,5 +42,6 @@ This folder is your course notes for the engine. Read the lessons in order. Each
 | 05 | [The live feed: reconnects, heartbeats and recording](05-live-feed-reconnects-and-recording.md) | M4 |
 | 06 | [Replay: running yesterday again, exactly](06-replay-and-determinism.md) | M5 |
 | 07 | [The lock-free queue and memory ordering](07-lock-free-queue-and-memory-ordering.md) | M6 |
+| 08 | [Publishing: the contract with the strategy](08-publishing-and-the-contract.md) | M7 |
 
 More lessons get added as each milestone lands. Terms are defined in [GLOSSARY.md](GLOSSARY.md).

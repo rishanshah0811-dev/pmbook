@@ -7,6 +7,7 @@
 #include <filesystem>
 
 #include "core/clock.hpp"
+#include "core/json.hpp"
 
 namespace pm {
 
@@ -31,35 +32,7 @@ std::string Recorder::file_name_for(std::int64_t unix_s) {
 }
 
 void Recorder::append_json_escaped(std::string& out, std::string_view s) {
-  static constexpr char kHex[] = "0123456789abcdef";
-  for (const char ch : s) {
-    const auto c = static_cast<unsigned char>(ch);
-    switch (c) {
-      case '"':
-        out += "\\\"";
-        break;
-      case '\\':
-        out += "\\\\";
-        break;
-      case '\n':
-        out += "\\n";
-        break;
-      case '\r':
-        out += "\\r";
-        break;
-      case '\t':
-        out += "\\t";
-        break;
-      default:
-        if (c < 0x20) {
-          out += "\\u00";
-          out += kHex[c >> 4];
-          out += kHex[c & 0xF];
-        } else {
-          out += ch;
-        }
-    }
-  }
+  pm::append_json_escaped(out, s);
 }
 
 bool Recorder::open_for(std::int64_t unix_s) {

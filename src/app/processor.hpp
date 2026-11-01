@@ -35,6 +35,7 @@ class FrameProcessor {
 
   void on_frame(std::string_view raw, std::int64_t recv_ns) {
     ++frames_;
+    events_.clear();  // a frame that fails to parse must not re-publish old events
     const ParseStatus st = parser_.parse(raw, frame_);
     if (st == ParseStatus::Error) {
       ++parse_errors_;
@@ -42,7 +43,6 @@ class FrameProcessor {
                    std::string(raw).c_str());
       return;
     }
-    events_.clear();
     mgr_.apply(frame_, events_);
     for (const auto& e : events_) {
       if (e.kind == EventKind::ResyncNeeded) {
