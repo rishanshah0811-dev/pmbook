@@ -15,3 +15,11 @@ make check    # debug, tsan and release builds, all tests, format check
 ```
 
 Find token IDs for markets: `python3 tools/list_markets.py --limit 5`
+
+Run live and record (stats go to stderr):
+
+```bash
+./build/release/pmbook live --asset <token_id> --asset <token_id> \
+    --record-dir data/recordings --duration 600 --chaos-disconnect 180
+python3 tools/inspect_recording.py data/recordings/pm_*.jsonl.gz
+```

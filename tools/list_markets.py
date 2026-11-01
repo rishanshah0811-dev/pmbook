@@ -7,6 +7,7 @@ Uses the public Gamma API (no auth). Standard library only.
     python3 tools/list_markets.py --limit 3 --ids-only   # space-separated token IDs
 """
 import argparse
+import datetime as dt
 import json
 import os
 import ssl
@@ -44,7 +45,15 @@ def fetch(limit: int, min_liquidity: float) -> list[dict]:
         markets = json.load(resp)
     out = []
     for m in markets:
-        if not m.get("enableOrderBook"):
+        if not m.get("enableOrderBook") or not m.get("acceptingOrders", True):
+            continue
+        # Skip markets that have ended or are effectively decided (a book stuck
+        # at 0.999/0.001 is useless for market making).
+        end = m.get("endDate")
+        if end and dt.datetime.fromisoformat(end.replace("Z", "+00:00")) < dt.datetime.now(dt.timezone.utc):
+            continue
+        bid, ask = float(m.get("bestBid") or 0), float(m.get("bestAsk") or 1)
+        if not (0.03 <= bid and ask <= 0.97):
             continue
         if float(m.get("liquidityNum") or m.get("liquidity") or 0) < min_liquidity:
             continue

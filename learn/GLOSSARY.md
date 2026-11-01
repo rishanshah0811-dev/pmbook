@@ -5,12 +5,14 @@ One line per term, alphabetical.
 - **AddressSanitizer (ASan)**: compiler add-on that crashes loudly the moment your program reads or writes memory it shouldn't.
 - **Ask / offer**: a resting order to sell at a given price.
 - **asset_id / token ID**: Polymarket's ID for one outcome's order book (a 77-digit number, stored as a string).
+- **Atomic (std::atomic)**: a variable whose reads/writes are indivisible and safely visible across threads.
 - **Best bid / best ask**: highest buy price / lowest sell price currently in the book.
 - **Bid**: a resting order to buy at a given price.
 - **Bitmap (occupancy)**: one bit per slot saying whether it's in use; lets you skip 64 empty slots at once.
 - **Cache (CPU)**: small, very fast memory next to the CPU that holds recently used data.
 - **Cache line**: the 64-byte block the CPU moves between memory and cache in one go.
 - **Cache miss**: the data wasn't in cache, so the CPU waits for main memory (~100× slower).
+- **Chaos testing**: deliberately breaking things (e.g. dropping the connection) to prove recovery works.
 - **CMake**: a tool that reads a description of your project and generates the real build instructions for your machine.
 - **Compiler**: program that turns C++ source code into machine code the CPU runs.
 - **countl_zero / countr_zero**: C++20 `<bit>` functions counting leading/trailing zero bits; one CPU instruction.
@@ -19,9 +21,14 @@ One line per term, alphabetical.
 - **Delta**: a message describing only what changed in the book.
 - **Dependency**: someone else's library our code uses (e.g. simdjson).
 - **Differential testing**: checking a fast implementation against a simple reference on the same random inputs.
+- **Exponential backoff**: waiting longer after each failed retry (0.5 s, 1 s, 2 s, …) up to a cap.
 - **FetchContent**: CMake feature that downloads a dependency's source at configure time and builds it with our project.
 - **Fixed point**: storing a decimal as a whole number of a small unit (price 0.08 → 800 units of 0.0001).
 - **Floating point (`double`)**: binary scientific notation. Fast, but most decimals (like 0.1) are not exact.
+- **gzip sync flush**: forcing compressed data out to the file so it's readable even if the program dies.
+- **Heartbeat**: a small periodic message (PING/PONG) proving a connection is still alive.
+- **Jitter**: random extra delay added to retries so many clients don't retry at the same instant.
+- **JSON Lines (JSONL)**: text file with one JSON object per line.
 - **LTO (link-time optimisation)**: optimising across all source files at the final link step.
 - **Market data feed**: live stream of messages describing changes to the market.
 - **Micro-unit**: 0.000001 of a share; our unit for sizes.
@@ -38,10 +45,13 @@ One line per term, alphabetical.
 - **simdjson On-Demand**: simdjson mode that reads fields lazily in one pass instead of building a full tree.
 - **Snapshot**: a message containing the full book at one moment.
 - **Spread**: best ask − best bid.
+- **Stale connection**: a connection that looks open but delivers nothing; detected with a timeout.
 - **std::map**: C++ sorted container built as a balanced binary tree (red-black tree).
 - **std::span**: non-owning view of a contiguous run of elements (pointer + length).
 - **std::string_view**: non-owning view of characters (pointer + length); must not outlive the memory it points to.
+- **steady_clock**: C++ clock that never jumps backwards or forwards; use it to measure durations.
 - **Template**: C++ code written once for "any type T"; the compiler generates a version per type used.
+- **Thread**: an independent flow of execution inside a program; threads share memory.
 - **ThreadSanitizer (TSan)**: compiler add-on that detects data races at runtime.
 - **Tick / tick size**: the smallest allowed price step (Polymarket uses 0.01, 0.001 or 0.0001 depending on the market).
 - **TLS**: the encryption layer behind `https://` and `wss://`.

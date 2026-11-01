@@ -26,12 +26,14 @@ add_library(pmcore
   src/parse/fixed_point.cpp
   src/parse/parser.cpp
   src/book/flat_book.cpp
+  src/feed/feed_client.cpp
+  src/record/recorder.cpp
 )
 target_include_directories(pmcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(pmcore PUBLIC simdjson::simdjson PRIVATE pm_warnings)
+target_link_libraries(pmcore PUBLIC simdjson::simdjson ixwebsocket ZLIB::ZLIB PRIVATE pm_warnings)
 
 add_executable(pmbook src/main.cpp)
-target_link_libraries(pmbook PRIVATE pmcore ixwebsocket pm_warnings)
+target_link_libraries(pmbook PRIVATE pmcore pm_warnings)
 
 if(PM_BUILD_TESTS)
   enable_testing()

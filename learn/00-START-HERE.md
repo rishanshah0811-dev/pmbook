@@ -39,5 +39,6 @@ This folder is your course notes for the engine. Read the lessons in order. Each
 | 02 | [How a C++ project is built: CMake, dependencies, sanitizers](02-building-cpp-cmake-sanitizers.md) | M1 |
 | 03 | [Parsing messages and why prices are integers](03-parsing-and-fixed-point.md) | M2 |
 | 04 | [The order book: flat array vs std::map](04-order-book-flat-array-vs-map.md) | M3 |
+| 05 | [The live feed: reconnects, heartbeats and recording](05-live-feed-reconnects-and-recording.md) | M4 |
 
 More lessons get added as each milestone lands. Terms are defined in [GLOSSARY.md](GLOSSARY.md).
