@@ -23,7 +23,9 @@
 
 namespace pm {
 
-template <class Book>
+// Book and ParserT are template parameters so the naive baseline
+// (MapBook + NaiveParser) runs through exactly the same code.
+template <class Book, class ParserT = Parser>
 class FrameProcessor {
  public:
   struct Options {
@@ -89,7 +91,7 @@ class FrameProcessor {
 
  private:
   Options opt_;
-  Parser parser_;
+  ParserT parser_;
   ParsedFrame frame_;
   BookManager<Book> mgr_;
   std::vector<BookEvent<Book>> events_;

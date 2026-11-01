@@ -27,6 +27,8 @@
 #include "app/summary_compare.hpp"
 #include "book/book_manager.hpp"
 #include "core/clock.hpp"
+#include "core/histogram.hpp"
+#include "core/machine.hpp"
 #include "core/version.hpp"
 #include "feed/feed_client.hpp"
 #include "parse/parser.hpp"
@@ -97,6 +99,7 @@ struct LiveArgs {
   std::string summary_path;
   pm::WaitMode wait = pm::WaitMode::Hybrid;
   PublishArgs publish{.mode = "stdout"};
+  std::string latency_out;  // write latency histograms as JSON here
 };
 
 int usage() {
@@ -106,6 +109,7 @@ int usage() {
       "                   [--duration SEC] [--chaos-disconnect SEC] [--stats SEC]\n"
       "                   [--summary FILE] [--wait spin|hybrid]\n"
       "                   [--publish stdout|tcp|none] [--publish-port N] [--depth N]\n"
+      "                   [--latency-out FILE]\n"
       "       pmbook replay [--speed X] [--stats SEC] [--summary FILE] [--expect FILE]\n"
       "                     [--publish stdout|tcp|none] [--publish-port N] [--depth N] FILE...\n"
       "                     (--speed 0 = as fast as possible, 1 = real time)\n"
@@ -140,6 +144,8 @@ std::optional<LiveArgs> parse_live(int argc, char** argv) {
       a.stats_s = std::max(1, std::atoi(v));
     } else if (k == "--summary") {
       a.summary_path = v;
+    } else if (k == "--latency-out") {
+      a.latency_out = v;
     } else if (k == "--wait") {
       if (std::string_view(v) == "spin") {
         a.wait = pm::WaitMode::Spin;
@@ -177,11 +183,28 @@ int run_live(const LiveArgs& args) {
   std::optional<Publisher> publisher;
   if (sink) publisher.emplace(*sink, args.publish.depth);
 
+  // Latency, measured on the processing thread (see learn/09):
+  //   internal = recv_ns (stamped on the network thread) -> books updated and
+  //              messages handed to the sink. Includes queueing and wake-up.
+  //   service  = just the processing call (parse + book + publish).
+  // Only frames that produced a published message are counted (PONGs and
+  // ignored frames would flatter the numbers).
+  LatencyHistogram internal_hist, service_hist;
+  std::uint64_t unpublished_frames = 0;
+
   FramePipeline pipeline(
       4096, args.wait,
       [&](std::string_view raw, std::int64_t recv_ns) {
+        const std::int64_t start = steady_ns();
         proc.on_frame(raw, recv_ns);  // the same path replay uses
         if (publisher) publisher->on_events(proc.events(), recv_ns);
+        const std::int64_t done = steady_ns();
+        if (!proc.events().empty()) {
+          internal_hist.record(done - recv_ns);
+          service_hist.record(done - start);
+        } else {
+          ++unpublished_frames;
+        }
         if (recorder && !recorder->write(recv_ns, raw)) {
           std::fprintf(stderr, "error: recorder write failed (%s)\n",
                        recorder->current_path().c_str());
@@ -253,6 +276,26 @@ int run_live(const LiveArgs& args) {
                static_cast<unsigned long long>(pipeline.full_waits()));
   if (!args.summary_path.empty()) {
     std::ofstream(args.summary_path) << summary << "\n";
+  }
+  std::fprintf(stderr,
+               "[latency] internal recv->published (n=%llu): p50 %.1f us  p99 %.1f us  p99.9 %.1f "
+               "us  max %.1f "
+               "us | service p50 %.2f us\n",
+               static_cast<unsigned long long>(internal_hist.count()),
+               static_cast<double>(internal_hist.percentile(0.5)) / 1e3,
+               static_cast<double>(internal_hist.percentile(0.99)) / 1e3,
+               static_cast<double>(internal_hist.percentile(0.999)) / 1e3,
+               static_cast<double>(internal_hist.max()) / 1e3,
+               static_cast<double>(service_hist.percentile(0.5)) / 1e3);
+  if (!args.latency_out.empty()) {
+    std::ofstream out(args.latency_out);
+    out << "{\"mode\":\"live\",\"wait\":\"" << (args.wait == WaitMode::Spin ? "spin" : "hybrid")
+        << "\",\"publish\":\"" << args.publish.mode << "\",\"machine\":\"" << machine_description()
+        << "\",\"build\":\"" << build_description() << "\",\"assets\":" << args.assets.size()
+        << ",\"duration_s\":" << args.duration_s << ",\"frames\":" << client.frames()
+        << ",\"frames_without_output\":" << unpublished_frames
+        << ",\"internal_latency\":" << internal_hist.to_json()
+        << ",\"service_time\":" << service_hist.to_json() << "}\n";
   }
   return proc.parse_errors() == 0 ? 0 : 1;
 }

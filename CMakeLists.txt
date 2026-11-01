@@ -23,6 +23,7 @@ include(Dependencies)
 # Core library: everything except main() lives here so tests and benches link it.
 add_library(pmcore
   src/core/version.cpp
+  src/core/machine.cpp
   src/parse/fixed_point.cpp
   src/parse/parser.cpp
   src/book/flat_book.cpp
@@ -31,9 +32,12 @@ add_library(pmcore
   src/record/record_reader.cpp
   src/app/summary_compare.cpp
   src/publish/tcp_sink.cpp
+  src/naive/naive_parser.cpp
 )
 target_include_directories(pmcore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(pmcore PUBLIC simdjson::simdjson ixwebsocket ZLIB::ZLIB PRIVATE pm_warnings)
+target_compile_definitions(pmcore PRIVATE PM_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
+  $<$<BOOL:${CMAKE_INTERPROCEDURAL_OPTIMIZATION}>:PM_LTO>)
+target_link_libraries(pmcore PUBLIC simdjson::simdjson nlohmann_json::nlohmann_json ixwebsocket ZLIB::ZLIB PRIVATE pm_warnings)
 
 add_executable(pmbook src/main.cpp)
 target_link_libraries(pmbook PRIVATE pmcore pm_warnings)

@@ -43,5 +43,6 @@ This folder is your course notes for the engine. Read the lessons in order. Each
 | 06 | [Replay: running yesterday again, exactly](06-replay-and-determinism.md) | M5 |
 | 07 | [The lock-free queue and memory ordering](07-lock-free-queue-and-memory-ordering.md) | M6 |
 | 08 | [Publishing: the contract with the strategy](08-publishing-and-the-contract.md) | M7 |
+| 09 | [Measuring latency honestly](09-measuring-latency-honestly.md) | M8 |
 
 More lessons get added as each milestone lands. Terms are defined in [GLOSSARY.md](GLOSSARY.md).

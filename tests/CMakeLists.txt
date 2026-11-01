@@ -11,6 +11,8 @@ add_executable(pm_tests
   test_replay.cpp
   test_spsc.cpp
   test_publisher.cpp
+  test_histogram.cpp
+  test_naive.cpp
 )
 target_link_libraries(pm_tests PRIVATE pmcore nlohmann_json::nlohmann_json GTest::gtest_main ZLIB::ZLIB pm_warnings)
 target_compile_definitions(pm_tests PRIVATE

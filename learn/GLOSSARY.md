@@ -18,8 +18,10 @@ One line per term, alphabetical.
 - **Chaos testing**: deliberately breaking things (e.g. dropping the connection) to prove recovery works.
 - **CLOCK_MONOTONIC_RAW**: the macOS/Linux clock behind C++ steady_clock on macOS (libc++); never adjusted.
 - **CMake**: a tool that reads a description of your project and generates the real build instructions for your machine.
+- **Cold cache**: the CPU caches no longer hold your code/data (e.g. after idling), so the next run is slower.
 - **Compiler**: program that turns C++ source code into machine code the CPU runs.
 - **Contract (interface)**: a written agreement on message format and meaning between two programs.
+- **Coordinated omission**: a benchmark mistake where stalls also delay the sending of new requests, hiding most of the slowdown.
 - **countl_zero / countr_zero**: C++20 `<bit>` functions counting leading/trailing zero bits; one CPU instruction.
 - **Crossed book**: best bid ≥ best ask. On a real exchange this can't last, so locally it means a bug or missed update.
 - **Data race**: two threads access the same memory without ordering, and at least one writes. Undefined behaviour in C++.
@@ -35,8 +37,10 @@ One line per term, alphabetical.
 - **Floating point (`double`)**: binary scientific notation. Fast, but most decimals (like 0.1) are not exact.
 - **gzip sync flush**: forcing compressed data out to the file so it's readable even if the program dies.
 - **Heartbeat**: a small periodic message (PING/PONG) proving a connection is still alive.
+- **Histogram (latency)**: counts of how many measurements fell in each range of values.
 - **Jitter**: random extra delay added to retries so many clients don't retry at the same instant.
 - **JSON Lines (JSONL)**: text file with one JSON object per line.
+- **Latency**: how long one item takes from start to finish.
 - **Lock-free**: threads cooperate without locks, so no thread can be blocked by another being paused.
 - **LTO (link-time optimisation)**: optimising across all source files at the final link step.
 - **Market data feed**: live stream of messages describing changes to the market.
@@ -48,6 +52,7 @@ One line per term, alphabetical.
 - **Non-blocking socket**: send/recv return immediately instead of waiting; leftovers are handled later.
 - **OpenSSL**: library that implements TLS encryption.
 - **Order book**: all resting buy and sell orders for one instrument, grouped by price.
+- **p50 / p99 / p99.9**: the value that 50% / 99% / 99.9% of measurements are below.
 - **Parsing**: turning text (JSON) into structured data the program can use.
 - **Preset**: a named, saved set of CMake build settings (e.g. `debug`, `release`).
 - **Price level**: one price plus the total size resting at it.
@@ -59,6 +64,7 @@ One line per term, alphabetical.
 - **Ring buffer**: fixed-size array used as a circular queue; indices wrap around.
 - **Sanitizer**: compiler option that adds runtime checks to catch a class of bugs (memory, undefined behaviour, data races).
 - **Sequence number (seq)**: a counter on each message so a receiver can detect missing ones.
+- **Service time**: time spent actually working on an item, excluding waiting.
 - **SIMD**: "single instruction, multiple data": one CPU instruction processes many bytes at once.
 - **simdjson On-Demand**: simdjson mode that reads fields lazily in one pass instead of building a full tree.
 - **Snapshot**: a message containing the full book at one moment.
@@ -73,6 +79,7 @@ One line per term, alphabetical.
 - **Template**: C++ code written once for "any type T"; the compiler generates a version per type used.
 - **Thread**: an independent flow of execution inside a program; threads share memory.
 - **ThreadSanitizer (TSan)**: compiler add-on that detects data races at runtime.
+- **Throughput**: items processed per second.
 - **Tick / tick size**: the smallest allowed price step (Polymarket uses 0.01, 0.001 or 0.0001 depending on the market).
 - **TLS**: the encryption layer behind `https://` and `wss://`.
 - **Undefined behaviour (UB)**: code the C++ standard gives no meaning to (e.g. signed overflow). It may "work" today and break under optimisation.
