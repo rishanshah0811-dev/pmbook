@@ -10,6 +10,7 @@
 // bytes are buffered per client; past 8 MB the client is dropped.
 
 #include <atomic>
+#include <cstddef>
 #include <cstdint>
 #include <mutex>
 #include <string>

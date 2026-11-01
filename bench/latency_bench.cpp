@@ -20,6 +20,7 @@
 //                    [--speed 1000] [--loops 200] [--throughput]
 //                    [--expect live_summary.json] --out results/x.json FILES...
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstdio>

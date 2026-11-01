@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include <zlib.h>
 
 #include <filesystem>

@@ -1,6 +1,7 @@
 #pragma once
 // Where published lines go. The publisher formats; a Sink delivers.
 
+#include <cstddef>
 #include <cstdio>
 #include <string>
 #include <string_view>

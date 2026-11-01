@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
+#include <unistd.h>
 #include <zlib.h>
 
 #include <atomic>
+#include <cstddef>
 #include <filesystem>
 #include <nlohmann/json.hpp>
 #include <string>

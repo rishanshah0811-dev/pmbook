@@ -3,6 +3,8 @@
 #include <sys/utsname.h>
 #include <unistd.h>
 
+#include <cstddef>
+#include <cstdint>
 #include <fstream>
 #include <thread>
 #if defined(__APPLE__)

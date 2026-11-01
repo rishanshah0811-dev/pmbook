@@ -4,7 +4,9 @@
 #include <ixwebsocket/IXWebSocket.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <random>
+#include <utility>
 
 #include "core/clock.hpp"
 

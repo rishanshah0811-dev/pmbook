@@ -1,0 +1,23 @@
+# Builds and tests on Linux with GCC and Clang (sanitizer + release builds).
+# Not yet run: added before the repository was ever pushed.
+name: ci
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+    env:
+      CC: ${{ matrix.compiler == 'gcc' && 'gcc' || 'clang' }}
+      CXX: ${{ matrix.compiler == 'gcc' && 'g++' || 'clang++' }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ninja-build libssl-dev zlib1g-dev python3
+      - name: debug (ASan + UBSan)
+        run: cmake --workflow --preset check
+      - name: release
+        run: cmake --workflow --preset check-release
+      - name: tsan
+        run: cmake --workflow --preset check-tsan

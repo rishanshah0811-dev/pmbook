@@ -44,5 +44,6 @@ This folder is your course notes for the engine. Read the lessons in order. Each
 | 07 | [The lock-free queue and memory ordering](07-lock-free-queue-and-memory-ordering.md) | M6 |
 | 08 | [Publishing: the contract with the strategy](08-publishing-and-the-contract.md) | M7 |
 | 09 | [Measuring latency honestly](09-measuring-latency-honestly.md) | M8 |
+| 10 | [Explaining this project in an interview](10-explaining-this-project-in-an-interview.md) | M9 |
 
-More lessons get added as each milestone lands. Terms are defined in [GLOSSARY.md](GLOSSARY.md).
+Terms are defined in [GLOSSARY.md](GLOSSARY.md). The protocol is in [../CONTRACT.md](../CONTRACT.md), and results are in [../results/](../results/).
