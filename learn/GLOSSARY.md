@@ -14,19 +14,28 @@ One line per term, alphabetical.
 - **Delta**: a message describing only what changed in the book.
 - **Dependency**: someone else's library our code uses (e.g. simdjson).
 - **FetchContent**: CMake feature that downloads a dependency's source at configure time and builds it with our project.
+- **Fixed point**: storing a decimal as a whole number of a small unit (price 0.08 → 800 units of 0.0001).
+- **Floating point (`double`)**: binary scientific notation. Fast, but most decimals (like 0.1) are not exact.
 - **LTO (link-time optimisation)**: optimising across all source files at the final link step.
 - **Market data feed**: live stream of messages describing changes to the market.
+- **Micro-unit**: 0.000001 of a share; our unit for sizes.
 - **OpenSSL**: library that implements TLS encryption.
 - **Order book**: all resting buy and sell orders for one instrument, grouped by price.
+- **Parsing**: turning text (JSON) into structured data the program can use.
 - **Preset**: a named, saved set of CMake build settings (e.g. `debug`, `release`).
 - **Price level**: one price plus the total size resting at it.
+- **RAII**: "resource acquisition is initialisation": an object owns a resource and frees it automatically in its destructor.
 - **Sanitizer**: compiler option that adds runtime checks to catch a class of bugs (memory, undefined behaviour, data races).
 - **SIMD**: "single instruction, multiple data": one CPU instruction processes many bytes at once.
+- **simdjson On-Demand**: simdjson mode that reads fields lazily in one pass instead of building a full tree.
 - **Snapshot**: a message containing the full book at one moment.
 - **Spread**: best ask − best bid.
+- **std::span**: non-owning view of a contiguous run of elements (pointer + length).
+- **std::string_view**: non-owning view of characters (pointer + length); must not outlive the memory it points to.
 - **ThreadSanitizer (TSan)**: compiler add-on that detects data races at runtime.
 - **Tick / tick size**: the smallest allowed price step (Polymarket uses 0.01, 0.001 or 0.0001 depending on the market).
 - **TLS**: the encryption layer behind `https://` and `wss://`.
 - **Undefined behaviour (UB)**: code the C++ standard gives no meaning to (e.g. signed overflow). It may "work" today and break under optimisation.
 - **UndefinedBehaviorSanitizer (UBSan)**: compiler add-on that reports undefined behaviour while the program runs.
 - **WebSocket**: a long-lived two-way connection over the internet. The server can push messages to you without you asking each time.
+- **Zero-copy**: using data where it already sits in memory instead of copying it.
