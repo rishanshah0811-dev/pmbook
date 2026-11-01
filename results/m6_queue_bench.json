@@ -1,0 +1,11 @@
+{
+  "machine": "Apple M5, 16 GB, macOS 26.6.2",
+  "compiler": "Homebrew clang 23.1.4, -O3, LTO",
+  "method": "2 threads, both busy-spinning; median of 5 runs; no core pinning (macOS)",
+  "clock_resolution_ns": 41.00,
+  "throughput_million_items_per_s": {"spsc": 199.9, "mutex": 37.7},
+  "ping_pong_round_trip_ns": {
+    "spsc":  {"p50": 125, "p99": 167, "p99_9": 375},
+    "mutex": {"p50": 3583, "p99": 14375, "p99_9": 34625}
+  }
+}

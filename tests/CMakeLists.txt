@@ -9,6 +9,7 @@ add_executable(pm_tests
   test_feed.cpp
   test_recorder.cpp
   test_replay.cpp
+  test_spsc.cpp
 )
 target_link_libraries(pm_tests PRIVATE pmcore nlohmann_json::nlohmann_json GTest::gtest_main ZLIB::ZLIB pm_warnings)
 target_compile_definitions(pm_tests PRIVATE

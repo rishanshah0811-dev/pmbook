@@ -2,6 +2,7 @@
 
 One line per term, alphabetical.
 
+- **Acquire load**: an atomic read after which you also see everything the writer did before its matching release store.
 - **AddressSanitizer (ASan)**: compiler add-on that crashes loudly the moment your program reads or writes memory it shouldn't.
 - **Ask / offer**: a resting order to sell at a given price.
 - **asset_id / token ID**: Polymarket's ID for one outcome's order book (a 77-digit number, stored as a string).
@@ -9,6 +10,7 @@ One line per term, alphabetical.
 - **Best bid / best ask**: highest buy price / lowest sell price currently in the book.
 - **Bid**: a resting order to buy at a given price.
 - **Bitmap (occupancy)**: one bit per slot saying whether it's in use; lets you skip 64 empty slots at once.
+- **Busy-spin**: a thread loops checking for work instead of sleeping; lowest latency, burns a CPU core.
 - **Cache (CPU)**: small, very fast memory next to the CPU that holds recently used data.
 - **Cache line**: the 64-byte block the CPU moves between memory and cache in one go.
 - **Cache miss**: the data wasn't in cache, so the CPU waits for main memory (~100× slower).
@@ -23,6 +25,7 @@ One line per term, alphabetical.
 - **Determinism**: same input always produces the same output, run after run.
 - **Differential testing**: checking a fast implementation against a simple reference on the same random inputs.
 - **Exponential backoff**: waiting longer after each failed retry (0.5 s, 1 s, 2 s, …) up to a cap.
+- **False sharing**: different variables on the same cache line, written by different cores, making the line bounce between them.
 - **FetchContent**: CMake feature that downloads a dependency's source at configure time and builds it with our project.
 - **Fingerprint (state hash)**: a short number computed from a whole data structure; equal structures give equal fingerprints.
 - **Fixed point**: storing a decimal as a whole number of a small unit (price 0.08 → 800 units of 0.0001).
@@ -31,10 +34,13 @@ One line per term, alphabetical.
 - **Heartbeat**: a small periodic message (PING/PONG) proving a connection is still alive.
 - **Jitter**: random extra delay added to retries so many clients don't retry at the same instant.
 - **JSON Lines (JSONL)**: text file with one JSON object per line.
+- **Lock-free**: threads cooperate without locks, so no thread can be blocked by another being paused.
 - **LTO (link-time optimisation)**: optimising across all source files at the final link step.
 - **Market data feed**: live stream of messages describing changes to the market.
+- **Memory ordering**: rules for when one thread's writes become visible to another, in what order.
 - **Micro-unit**: 0.000001 of a share; our unit for sizes.
 - **Microprice**: mid price weighted by opposite-side sizes; leans toward the side likely to move.
+- **Mutex**: a lock; only one thread at a time may hold it.
 - **OpenSSL**: library that implements TLS encryption.
 - **Order book**: all resting buy and sell orders for one instrument, grouped by price.
 - **Parsing**: turning text (JSON) into structured data the program can use.
@@ -42,13 +48,16 @@ One line per term, alphabetical.
 - **Price level**: one price plus the total size resting at it.
 - **Pure function**: output depends only on its inputs, with no hidden clock, randomness or outside state.
 - **RAII**: "resource acquisition is initialisation": an object owns a resource and frees it automatically in its destructor.
+- **Release store**: an atomic write that publishes every earlier write to any thread that acquires the value.
 - **Replay**: feeding recorded input back through the system to reproduce a past session.
 - **Resync**: throwing away a book you no longer trust and rebuilding it from a fresh snapshot.
+- **Ring buffer**: fixed-size array used as a circular queue; indices wrap around.
 - **Sanitizer**: compiler option that adds runtime checks to catch a class of bugs (memory, undefined behaviour, data races).
 - **SIMD**: "single instruction, multiple data": one CPU instruction processes many bytes at once.
 - **simdjson On-Demand**: simdjson mode that reads fields lazily in one pass instead of building a full tree.
 - **Snapshot**: a message containing the full book at one moment.
 - **Spread**: best ask − best bid.
+- **SPSC queue**: single-producer, single-consumer queue; exactly one thread pushes and one pops.
 - **Stale connection**: a connection that looks open but delivers nothing; detected with a timeout.
 - **std::map**: C++ sorted container built as a balanced binary tree (red-black tree).
 - **std::span**: non-owning view of a contiguous run of elements (pointer + length).

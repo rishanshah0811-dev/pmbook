@@ -41,5 +41,6 @@ This folder is your course notes for the engine. Read the lessons in order. Each
 | 04 | [The order book: flat array vs std::map](04-order-book-flat-array-vs-map.md) | M3 |
 | 05 | [The live feed: reconnects, heartbeats and recording](05-live-feed-reconnects-and-recording.md) | M4 |
 | 06 | [Replay: running yesterday again, exactly](06-replay-and-determinism.md) | M5 |
+| 07 | [The lock-free queue and memory ordering](07-lock-free-queue-and-memory-ordering.md) | M6 |
 
 More lessons get added as each milestone lands. Terms are defined in [GLOSSARY.md](GLOSSARY.md).

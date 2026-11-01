@@ -2,6 +2,7 @@
 //
 //   pmbook live --asset <token_id> [--asset ...] [--record-dir DIR]
 //               [--duration SEC] [--chaos-disconnect SEC] [--summary FILE]
+//               [--wait spin|hybrid]
 //   pmbook replay [--speed X] [--summary FILE] [--expect FILE] FILE...
 //
 // Status and stats go to stderr; stdout is reserved for the PMBook stream
@@ -28,6 +29,7 @@
 #include "core/version.hpp"
 #include "feed/feed_client.hpp"
 #include "parse/parser.hpp"
+#include "queue/frame_pipeline.hpp"
 #include "record/recorder.hpp"
 #include "replay/replayer.hpp"
 
@@ -45,6 +47,7 @@ struct LiveArgs {
   int chaos_s = 0;     // 0 = off
   int stats_s = 10;
   std::string summary_path;
+  pm::WaitMode wait = pm::WaitMode::Hybrid;
 };
 
 int usage() {
@@ -52,7 +55,7 @@ int usage() {
       stderr,
       "usage: pmbook live --asset ID [--asset ID ...] [--record-dir DIR | --no-record]\n"
       "                   [--duration SEC] [--chaos-disconnect SEC] [--stats SEC]\n"
-      "                   [--summary FILE]\n"
+      "                   [--summary FILE] [--wait spin|hybrid]\n"
       "       pmbook replay [--speed X] [--stats SEC] [--summary FILE] [--expect FILE] FILE...\n"
       "                     (--speed 0 = as fast as possible, 1 = real time)\n"
       "tip: python3 tools/list_markets.py --limit 3 --ids-only\n");
@@ -82,6 +85,14 @@ std::optional<LiveArgs> parse_live(int argc, char** argv) {
       a.stats_s = std::max(1, std::atoi(v));
     } else if (k == "--summary") {
       a.summary_path = v;
+    } else if (k == "--wait") {
+      if (std::string_view(v) == "spin") {
+        a.wait = pm::WaitMode::Spin;
+      } else if (std::string_view(v) == "hybrid") {
+        a.wait = pm::WaitMode::Hybrid;
+      } else {
+        return std::nullopt;
+      }
     } else {
       return std::nullopt;
     }
@@ -97,19 +108,27 @@ int run_live(const LiveArgs& args) {
     return 2;
   }
 
-  // Everything below is touched only by the frame-handling thread.
-  // FeedClient guarantees callbacks from one connection never overlap with
-  // the next connection's (it joins the old thread first).
+  // Threads: the network thread (inside FeedClient) only timestamps each
+  // frame and pushes it into a lock-free SPSC queue. The processing thread
+  // (inside FramePipeline) pops frames, updates books, then records them.
+  // Recording happens after processing so gzip never delays a book update.
+  // proc and recorder are touched only by the processing thread.
   std::optional<Recorder> recorder;
   if (args.record) recorder.emplace(args.record_dir);
   FrameProcessor<FlatBook> proc({.stats_interval_s = args.stats_s, .log_resyncs = true});
 
-  auto on_frame = [&](std::string_view raw, std::int64_t recv_ns) {
+  FramePipeline pipeline(4096, args.wait, [&](std::string_view raw, std::int64_t recv_ns) {
+    proc.on_frame(raw, recv_ns);  // the same path replay uses
     if (recorder && !recorder->write(recv_ns, raw)) {
       std::fprintf(stderr, "error: recorder write failed (%s)\n", recorder->current_path().c_str());
     }
-    proc.on_frame(raw, recv_ns);  // the same path replay uses
-  };
+  });
+  pipeline.start();
+
+  // Runs on the network thread. FeedClient guarantees frames from one
+  // connection never overlap with the next one's, so there is exactly one
+  // producer at a time, as the SPSC queue requires.
+  auto on_frame = [&](std::string_view raw, std::int64_t recv_ns) { pipeline.push(raw, recv_ns); };
 
   auto on_status = [&](FeedStatus st, std::string_view detail) {
     // Only logs. Book state is driven purely by frames (see processor.hpp).
@@ -146,16 +165,19 @@ int run_live(const LiveArgs& args) {
     }
   }
 
-  client.stop();  // joins all network threads: safe to read state below
+  client.stop();    // joins network threads: no more pushes
+  pipeline.stop();  // drains the queue, joins the processing thread
   if (recorder) recorder->close();
   const std::string summary = proc.summary();
   std::fprintf(stderr,
-               "[done] connects=%llu disconnects=%llu frames=%llu parse_errors=%llu resyncs=%llu\n",
+               "[done] connects=%llu disconnects=%llu frames=%llu parse_errors=%llu resyncs=%llu "
+               "queue_full_waits=%llu\n",
                static_cast<unsigned long long>(client.connects()),
                static_cast<unsigned long long>(client.disconnects()),
                static_cast<unsigned long long>(client.frames()),
                static_cast<unsigned long long>(proc.parse_errors()),
-               static_cast<unsigned long long>(proc.resync_events()));
+               static_cast<unsigned long long>(proc.resync_events()),
+               static_cast<unsigned long long>(pipeline.full_waits()));
   if (!args.summary_path.empty()) {
     std::ofstream(args.summary_path) << summary << "\n";
   }
