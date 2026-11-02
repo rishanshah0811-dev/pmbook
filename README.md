@@ -136,19 +136,6 @@ Useful `live` flags: `--duration SEC`, `--chaos-disconnect SEC` (forces drops to
 | `examples/consume.py` | Reference consumer and contract validator |
 | `learn/` | Ten one-page lessons on everything above, plus a glossary |
 
-## CV bullets
-
-Each uses only numbers from `results/` or logged runs, with the source given underneath.
-
-1. **Built a low-latency C++20 market-data engine for Polymarket's live WebSocket feed** (simdjson parsing, fixed-point flat-array order book, lock-free SPSC queue), cutting internal latency about 4× versus a naive nlohmann/`std::map`/mutex baseline: p50 1.8 µs vs 7.3 µs, p99.9 28 µs vs 103 µs, over 293k replayed frames.
-   *Source: `results/m8_replay_*_spin.json`, Apple M5.*
-
-2. **Designed deterministic record/replay and live consistency checks**: a 12-minute live session (2,902 book updates, 6 tokens) replays to identical order books (matching per-asset state hashes), and every live update matched the exchange's best bid/ask (0 mismatches), with a 106-test suite clean under ASan, UBSan and ThreadSanitizer.
-   *Source: `data/sample/live_summary.json`, `make replay-sample`, `make check`.*
-
-3. **Implemented and stress-tested a lock-free SPSC ring buffer** (acquire/release ordering, cache-line padding) with 5× the throughput of a mutex queue (200M vs 38M items/s) and a 125 ns vs 3.6 µs round-trip p50. Showed that the relaxed-ordering bug corrupts data on ARM and is caught by ThreadSanitizer.
-   *Source: `results/m6_queue_bench.json`, `learn/07`.*
-
 ## Learn
 
 [`learn/00-START-HERE.md`](learn/00-START-HERE.md) indexes ten one-page lessons (order books, fixed point, cache-friendly data structures, reconnects, determinism, memory ordering, protocols, latency measurement, interview prep), each ending with interview questions.
