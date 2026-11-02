@@ -72,7 +72,7 @@ Design decisions worth knowing:
 
 ## Correctness
 
-106 tests (GoogleTest), run by `make check` in three builds: AddressSanitizer + UndefinedBehaviorSanitizer, ThreadSanitizer, and release. Zero compiler warnings in our code (`-Wall -Wextra -Wpedantic -Wconversion -Wshadow`, `-Werror`).
+106 tests (GoogleTest), run by `make check` in three builds on macOS and in CI on Linux (GCC and Clang): AddressSanitizer + UndefinedBehaviorSanitizer, ThreadSanitizer, and release. Zero compiler warnings in our code (`-Wall -Wextra -Wpedantic -Wconversion -Wshadow`, `-Werror`).
 
 - Parser: the official docs examples, real captured frames cross-checked field by field against nlohmann, 12 malformed inputs, every truncated prefix of valid messages.
 - Book: typed tests on both books; 1,000,000 random updates where flat array == `std::map` after every step. A deliberately planted off-by-one bug fails it on the first update.
@@ -95,7 +95,7 @@ make check          # debug, tsan and release builds, all tests, format check
 
 On macOS the build uses Homebrew LLVM automatically, because Xcode 16.0's sanitizer runtimes crash at startup on macOS 26 (`-DPM_USE_APPLE_CLANG=ON` opts out).
 
-Linux (Ubuntu: `apt install cmake ninja-build libssl-dev zlib1g-dev`) is supported by the code and by [`.github/workflows/ci.yml`](.github/workflows/ci.yml) (GCC and Clang), but **has not been built yet**: no Linux machine was available, and CI runs only once the repo is pushed.
+Linux (Ubuntu: `apt install cmake ninja-build libssl-dev zlib1g-dev`) is built and tested on every push by [`.github/workflows/ci.yml`](.github/workflows/ci.yml): Ubuntu 24.04 with GCC 13.3 and Clang 18.1, all three builds (ASan + UBSan, TSan, release), all tests passing.
 
 ## Run
 

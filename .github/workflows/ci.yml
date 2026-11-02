@@ -1,5 +1,4 @@
 # Builds and tests on Linux with GCC and Clang (sanitizer + release builds).
-# Not yet run: added before the repository was ever pushed.
 name: ci
 on: [push, pull_request]
 jobs:
