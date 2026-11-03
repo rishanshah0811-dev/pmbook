@@ -139,3 +139,7 @@ Useful `live` flags: `--duration SEC`, `--chaos-disconnect SEC` (forces drops to
 ## Learn
 
 [`learn/00-START-HERE.md`](learn/00-START-HERE.md) indexes ten one-page lessons (order books, fixed point, cache-friendly data structures, reconnects, determinism, memory ordering, protocols, latency measurement, interview prep), each ending with interview questions.
+
+## License
+
+MIT. See [`LICENSE`](LICENSE).
