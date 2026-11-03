@@ -4,6 +4,8 @@ A C++20 engine that connects to Polymarket's public market-data WebSocket, keeps
 
 It is market data only: no orders, no wallets, no keys, no accounts.
 
+**Live demo:** https://rishanshah0811-dev.github.io/pmbook/ replays 12 minutes of the engine's real output in the browser (built by `tools/export_demo.py`).
+
 ![latency chart](results/m8_latency.png)
 
 ## Results
