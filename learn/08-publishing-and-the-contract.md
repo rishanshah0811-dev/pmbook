@@ -1,6 +1,6 @@
 # 08 · Publishing: the contract with the strategy
 
-**In one sentence:** After every book change, the engine writes one line of JSON describing the top of the book, in a format written down in `CONTRACT.md`, so a separate program (your Python market maker) can trust and use it.
+**In one sentence:** After every book change, the engine writes one line of JSON describing the top of the book, in a format written down in `CONTRACT.md`, so a separate program (my Python market maker) can trust and use it.
 
 **Why trading firms care:** Firms are built from many processes: feed handlers, strategies, risk, order gateways. Each pair talks over a written interface. When the interface is vague ("what does a gap mean?", "is this sorted?", "which clock is that?"), you get bugs that only show up live, with money on the line.
 
@@ -18,7 +18,7 @@ A restaurant kitchen (engine) and waiters (strategy). The **ticket format** is t
 
 ## A wrong claim, caught by testing
 
-I first wrote in the contract that Python's `time.monotonic_ns()` uses the same clock as the engine. Measured on your Mac, it was off by a constant ~42 minutes. On macOS, C++ `steady_clock` is `CLOCK_MONOTONIC_RAW`; Python's monotonic is a different clock (the gap is likely time spent asleep). I proved which one matches (the C++ reading fell inside a Python before/after window 5 of 5 times), fixed the contract, and added `engine_clock_ns()` to the example consumer. Lesson: **"same clock" is a claim; test it.**
+I first wrote in the contract that Python's `time.monotonic_ns()` uses the same clock as the engine. Measured on my Mac, it was off by a constant ~42 minutes. On macOS, C++ `steady_clock` is `CLOCK_MONOTONIC_RAW`; Python's monotonic is a different clock (the gap is likely time spent asleep). I proved which one matches (the C++ reading fell inside a Python before/after window 5 of 5 times), fixed the contract, and added `engine_clock_ns()` to the example consumer. Lesson: **"same clock" is a claim; test it.**
 
 ## Worked example (real output, 40 s live, 6 tokens)
 

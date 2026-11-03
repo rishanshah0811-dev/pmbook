@@ -1,6 +1,6 @@
 # Start here
 
-This folder is your course notes for the engine. Read the lessons in order. Each one is a page and ends with interview questions.
+These are my notes on how the engine works and why it is built this way. Read them in order. Each one is a page and ends with interview questions.
 
 ## The big picture
 
